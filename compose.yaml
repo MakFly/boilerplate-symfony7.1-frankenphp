@@ -1,0 +1,65 @@
+services:
+    ###> webapp ###
+    webapp:
+        container_name: nextauth-api-sf
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+        ports:
+            - 80:80
+            # - 443:443
+            # - 443:443/udp
+        volumes:
+            - ./:/app
+            # - ./Caddyfile:/etc/caddy/Caddyfile # permet de surcharger le Caddyfile existant pour vérifier les configurations en production
+            - caddy_data:/data
+            - caddy_config:/config
+        # commentez la ligne suivante en production, elle permet d'avoir de beaux logs lisibles en dev
+        tty: true
+        networks:
+            - default
+    ###< webapp ###
+
+    ###> postgres ###
+    postgres:
+        image: postgres:latest
+        container_name: nextauth-api-sf-postgres
+        environment:
+            POSTGRES_USER: test
+            POSTGRES_PASSWORD: test
+            POSTGRES_DB: nextauth-api-sf
+        ports:
+            - 5432:5432
+        volumes:
+            - db:/var/lib/postgresql/data
+        networks:
+            - default
+    ###< postgres ###
+
+    ###> adminer ###
+    adminer:
+        image: adminer
+        environment:
+            - ADMINER_PLUGINS=${ADM_PLUGINS}
+            - ADMINER_DESIGN=${ADM_DESIGN}
+            - ADMINER_DEFAULT_SERVER=${ADM_DEFAULT_SERVER}
+            - ADMINER_DEFAULT_USERNAME=${ADM_DEFAULT_USERNAME}
+            - ADMINER_DEFAULT_PASSWORD=${ADM_DEFAULT_PASSWORD}
+        ports:
+            - "9080:8080"
+        volumes:
+            - adminer-data:/var/lib/adminer
+        networks:
+            - default
+    ###< adminer ###
+
+volumes:
+    db:
+    adminer-data:
+    caddy_data:
+    caddy_config:
+
+networks:
+    default:
+        driver: bridge
+
